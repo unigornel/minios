@@ -117,6 +117,9 @@ src-$(CONFIG_CONSFRONT) += console/xenbus.c
 APP_OBJS :=
 OBJS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(src-y))
 
+# Support for Go compilation
+include config/go.mk
+
 .PHONY: default
 default: $(OBJ_DIR)/$(TARGET)
 
