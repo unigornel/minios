@@ -1,6 +1,8 @@
 Mini-OS with Go
 ===============
 
+[Wiki](https://unigornel.org/doku.php?id=minios:link_with_go)
+
 After cloning build `sum.go` into a c-archive to generate `sum.a` and `sum.h`
 
 ```
