@@ -93,6 +93,7 @@ src-y += lock.c
 src-y += main.c
 src-y += go_main.c
 src-y += mm.c
+src-y += stubs.c
 src-$(CONFIG_NETFRONT) += netfront.c
 src-$(CONFIG_PCIFRONT) += pcifront.c
 src-y += sched.c
