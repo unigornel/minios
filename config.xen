@@ -11,3 +11,4 @@
 kernel = "mini-os"
 memory = 32
 name = "minios"
+on_crash = "preserve"
