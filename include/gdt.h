@@ -7,5 +7,6 @@
 #define _GDT_H_
 
 void init_gdt(void);
+void switch_fs(unsigned long p);
 
 #endif /* GDT_H_ */
