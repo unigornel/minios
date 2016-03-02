@@ -85,6 +85,7 @@ src-$(CONFIG_TPMBACK) += tpmback.c
 src-y += daytime.c
 src-y += events.c
 src-$(CONFIG_FBFRONT) += fbfront.c
+src-y += gdt.c
 src-y += gntmap.c
 src-y += gnttab.c
 src-y += hypervisor.c
