@@ -6,16 +6,20 @@
 
 extern void _rt0_amd64_netbsd_lib(void);
 
-int app_main(start_info_t *si) {
+void thread_main(void *ctx) {
+    start_info_t *si;
     GoInt i;
 
+    si = (start_info_t *)ctx;
+
+    printk("go_main.c: thread_main(%p)\n", si);
     _rt0_amd64_netbsd_lib();
-
-
-    printk("go_main.c: app_main(%p)\n", si);
-
     i = Sum(3, 4);
     printk("go_main.c: result: %lld\n", i);
+}
 
+int app_main(start_info_t *si) {
+    printk("go_main.c: app_main(%p)\n", si);
+    create_thread("main", thread_main, si);
     return 0;
 }
