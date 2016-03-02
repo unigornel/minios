@@ -31,6 +31,7 @@
 #include <mini-os/kernel.h>
 #include <mini-os/hypervisor.h>
 #include <mini-os/mm.h>
+#include <mini-os/gdt.h>
 #include <mini-os/events.h>
 #include <mini-os/time.h>
 #include <mini-os/types.h>
@@ -127,6 +128,9 @@ void start_kernel(void)
 
     /* Init memory management. */
     init_mm();
+
+    /* Init GDT */
+    init_gdt();
 
     /* Init time and timers. */
     init_time();
