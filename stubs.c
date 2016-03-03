@@ -1,5 +1,7 @@
 #include <types.h>
 
+#include <mini-os/mm.h>
+
 // Stubs to link with go
 // All pthread stubs go here
 int pthread_create(void *thread, const void *attr, void *(*f)(void *), void *arg) {
@@ -23,15 +25,16 @@ int pthread_cond_broadcast(void *cond) {
 }
 
 int pthread_attr_init(void *attr) {
-    return 1;
+    return 0;
 }
 
-int pthread_attr_getstacksize(void *attr, void *stacksize) {
-    return 1;
+int pthread_attr_getstacksize(void *attr, size_t *stacksize) {
+    *stacksize = STACK_SIZE;
+    return 0;
 }
 
 int pthread_attr_destroy(void *attr) {
-    return 1;
+    return 0;
 }
 
 int pthread_sigmask(int how, void *set, void *oldset) {
