@@ -19,11 +19,12 @@ void thread_main(void *ctx) {
     printk("go_main.c: thread_main(%p)\n", si);
 
     tls_page = alloc_page();
+    printk("Virtual address of TLS page: 0x%lx\n", tls_page);
     switch_fs(tls_page);
 
     /* TEST TLS */
-    *(int *)tls_page = 9876;
-    __asm__ __volatile__("mov %%fs:0x0, %0" : "=r"(v));
+    *(int *)(tls_page + PAGE_SIZE - 8) = 9876;
+    __asm__ __volatile__("mov %%fs:0xfffffffffffffff8, %0" : "=r"(v));
     if(v != 9876) {
         printk("Could not successfully set up TLS\n");
         *(char *)0 = 0;
