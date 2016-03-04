@@ -92,3 +92,7 @@ int fprintf(void *fh, const char *format, ...) {
 size_t fwrite(const void *data, size_t size, size_t n, void *fh) {
     return 0;
 }
+
+void _unimplemented_syscall(void) {
+    CRASH("_unimplemented_syscall was called")
+}
