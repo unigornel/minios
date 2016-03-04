@@ -1,5 +1,4 @@
-#include <types.h>
-
+#include <mini-os/types.h>
 #include <mini-os/mm.h>
 #include <mini-os/crash.h>
 
