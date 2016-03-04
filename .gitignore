@@ -4,3 +4,6 @@
 include/list.h
 mini-os
 mini-os.gz
+
+# Vim
+.*.sw[a-z]

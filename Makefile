@@ -85,13 +85,16 @@ src-$(CONFIG_TPMBACK) += tpmback.c
 src-y += daytime.c
 src-y += events.c
 src-$(CONFIG_FBFRONT) += fbfront.c
+src-y += gdt.c
 src-y += gntmap.c
 src-y += gnttab.c
 src-y += hypervisor.c
 src-y += kernel.c
 src-y += lock.c
 src-y += main.c
+src-y += go_main.c
 src-y += mm.c
+src-y += stubs.c
 src-$(CONFIG_NETFRONT) += netfront.c
 src-$(CONFIG_PCIFRONT) += pcifront.c
 src-y += sched.c
@@ -115,6 +118,9 @@ src-$(CONFIG_CONSFRONT) += console/xenbus.c
 # The common mini-os objects to build.
 APP_OBJS :=
 OBJS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(src-y))
+
+# Support for Go compilation
+include config/go.mk
 
 .PHONY: default
 default: $(OBJ_DIR)/$(TARGET)
