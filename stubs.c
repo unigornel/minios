@@ -1,17 +1,12 @@
-#include <types.h>
-
+#include <mini-os/types.h>
 #include <mini-os/mm.h>
-#include <mini-os/console.h>
-
-#define CRASH(fmt, args...) { \
-    printk("crash: %s, line %d: " fmt "\n", __FILE__, __LINE__, ##args); \
-    *(char *)0 = 0; \
-}
+#include <mini-os/crash.h>
 
 // Stubs to link with go
 // All pthread stubs go here
 int pthread_create(void *thread, const void *attr, void *(*f)(void *), void *arg) {
     CRASH("pthread_create is not implemented");
+    ASSERT(0, "fack");
     return 1;
 }
 
