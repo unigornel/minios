@@ -20,7 +20,7 @@ void thread_main(void *ctx) {
 
     tls_page = alloc_page();
     printk("Virtual address of TLS page: 0x%lx\n", tls_page);
-    switch_fs(tls_page);
+    switch_fs(tls_page + PAGE_SIZE);
 
     /* TEST TLS */
     *(int *)(tls_page + PAGE_SIZE - 8) = 9876;

@@ -109,7 +109,7 @@ void seg_desc_fill(seg_desc_t *sd, seg_desc_type_t type)
 
 void switch_fs(unsigned long p)
 {
-    p += PAGE_SIZE;
+
     fs.desc.lobase = p & 0xFFFFFF;
     fs.desc.hibase = (p >> 24) & 0xFF;
     if (HYPERVISOR_update_descriptor(fs_pa, fs.raw)) {
