@@ -46,12 +46,10 @@ void fini_mm(void)
 {
 }
 
-unsigned long alloc_pages_aligned(int order, int zero_bits) {
-    unsigned long i, c, l, virt, align_mask;
+unsigned long alloc_num_pages_aligned(unsigned long c, int zero_bits) {
+    unsigned long i, l, virt, align_mask;
 
-    c = 1UL << order;
     i = 0;
-
     align_mask = ~((1 << zero_bits) - 1);
 
     while(i + c < mm.num_pages) {
