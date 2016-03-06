@@ -46,20 +46,25 @@ void fini_mm(void)
 {
 }
 
-unsigned long alloc_pages(int order) {
-    unsigned long i, c, l;
+unsigned long alloc_pages_aligned(int order, int zero_bits) {
+    unsigned long i, c, l, virt, align_mask;
 
     c = 1UL << order;
     i = 0;
 
+    align_mask = ~((1 << zero_bits) - 1);
+
     while(i + c < mm.num_pages) {
+        virt = (unsigned long)pfn_to_virt(i);
+        if(virt != (virt & align_mask)) {
+            i++;
+            continue;
+        }
+
         l = bitmap_num_free(i, c);
         if(l == c) {
             bitmap_set(i, c);
-            printk("Allocating 0x%lx-0x%lx\n",
-                (unsigned long)pfn_to_virt(i),
-                (unsigned long)pfn_to_virt(i+c));
-            return (unsigned long)pfn_to_virt(i);
+            return virt;
         }
         i += l + 1;
     }
