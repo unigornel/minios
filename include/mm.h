@@ -44,7 +44,9 @@
 
 
 void init_mm(void);
-unsigned long alloc_pages(int order);
+unsigned long alloc_num_pages_aligned(unsigned long n, int zero_bits);
+#define alloc_pages_aligned(order, zero_bits) alloc_num_pages_aligned(1 << (order), zero_bits)
+#define alloc_pages(order) alloc_pages_aligned(order, 0)
 #define alloc_page()    alloc_pages(0)
 void free_pages(void *pointer, int order);
 #define free_page(p)    free_pages(p, 0)
