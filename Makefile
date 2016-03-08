@@ -92,6 +92,7 @@ src-y += hypervisor.c
 src-y += kernel.c
 src-y += lock.c
 src-y += main.c
+src-y += mmap.c
 src-y += go_main.c
 src-y += go_mm.c
 src-$(CONFIG_NETFRONT) += netfront.c
