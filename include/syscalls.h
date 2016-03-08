@@ -8,7 +8,6 @@
 
 #include <mini-os/types.h>
 
-void *sys_alloc(size_t length);
 int32_t sys_write(uint64_t fd, void *p, int32_t n);
 
 #endif /* _SYSCALL_H */
