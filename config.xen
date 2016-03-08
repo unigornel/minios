@@ -9,6 +9,6 @@
 #----------------------------------------------------------------------------
 # Kernel image file.
 kernel = "mini-os"
-memory = 32
+memory = 256
 name = "minios"
 on_crash = "preserve"
