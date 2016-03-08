@@ -19,7 +19,7 @@ static struct {
 static void *reserve(void *addr, size_t length);
 static void *alloc_reserved(void *addr, size_t length);
 
-void *mmap(void *addr, size_t length, int32_t prot, int32_t flags, int32_t fd, int32_t offset)
+void *sys_mmap(void *addr, size_t length, int32_t prot, int32_t flags, int32_t fd, int32_t offset)
 {
     unsigned long num_pages;
 

@@ -16,6 +16,6 @@
 #define MAP_ANON        0x1000
 #define MAP_PRIVATE     0x2
 
-void *mmap(void *addr, size_t length, int32_t prot, int32_t flags, int32_t fd, int32_t offset);
+void *sys_mmap(void *addr, size_t length, int32_t prot, int32_t flags, int32_t fd, int32_t offset);
 
 #endif /* _MMAP_H_ */
