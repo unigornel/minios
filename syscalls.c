@@ -22,9 +22,5 @@ int32_t sys_write(uint64_t fd, void *p, int32_t n)
 
 uint64_t sys_nanotime(void)
 {
-    uint64_t n;
-
-    n = monotonic_clock();
-    printk("sys_nanotime: %lu\n", n);
-    return n;
+    return monotonic_clock();
 }
