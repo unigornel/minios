@@ -8,6 +8,9 @@
 
 #include <mini-os/types.h>
 
+extern int const sys_argc;
+extern char *const sys_argv[];
+
 int32_t sys_write(uint64_t fd, void *p, int32_t n);
 uint64_t sys_nanotime(void);
 
