@@ -13,5 +13,6 @@ extern char *const sys_argv[];
 
 int32_t sys_write(uint64_t fd, void *p, int32_t n);
 uint64_t sys_nanotime(void);
+uint64_t sys_thread_id(void);
 
 #endif /* _SYSCALL_H */
