@@ -45,12 +45,8 @@ typedef enum {
  */
 #define NUM_GDT_ENTRIES (PAGE_SIZE/sizeof(seg_desc_t))
 
-#define KERNEL_CS ((1 << 3) | 1)
-#define KERNEL_DS ((2 << 3) | 1)
-#define KERNEL_FS ((3 << 3) | 1)
-
-#define SEG_DESC_CS (KERNEL_CS >> 3)
-#define SEG_DESC_DS (KERNEL_DS >> 3)
+/* First descriptor should be the NULL descriptor, so start at index 1 */
+#define KERNEL_FS ((1 << 3) | 1)
 #define SEG_DESC_FS (KERNEL_FS >> 3)
 
 /**
@@ -125,8 +121,6 @@ void init_gdt(void)
     pte_t pte;
     unsigned long frames[1];
 
-    seg_desc_fill(&gdt[SEG_DESC_CS], seg_desc_type_era);
-    seg_desc_fill(&gdt[SEG_DESC_DS], seg_desc_type_rwa);
     seg_desc_fill(&gdt[SEG_DESC_FS], seg_desc_type_rwa);
 
     pte = __pte((virt_to_mach(&gdt)) | L1_PROT_RO);
