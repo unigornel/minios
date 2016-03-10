@@ -44,8 +44,7 @@ int pthread_attr_destroy(void *attr) {
 }
 
 int pthread_sigmask(int how, void *set, void *oldset) {
-    CRASH("pthread_sigmask is not implemented");
-    return 1;
+    return 0;
 }
 
 // Other stubs
@@ -70,8 +69,7 @@ int sigaltstack(const void *ss, void *oss) {
 }
 
 int sigfillset(void *set) {
-    CRASH("sigfillset is not implemented");
-    return -1;
+    return 0;
 }
 
 int setenv(const void *name, const char *value, int ow) {
