@@ -1,13 +1,40 @@
 #include <mini-os/types.h>
 #include <mini-os/mm.h>
 #include <mini-os/crash.h>
+#include <mini-os/sched.h>
+#include <mini-os/xmalloc.h>
+#include <mini-os/lib.h>
 
-// Stubs to link with go
-// All pthread stubs go here
-int pthread_create(void *thread, const void *attr, void *(*f)(void *), void *arg) {
-    CRASH("pthread_create is not implemented");
-    ASSERT(0, "fack");
-    return 1;
+#define PTHREAD_NAME_MAX_LEN 64
+
+typedef struct {
+    char name[PTHREAD_NAME_MAX_LEN];
+    void *(*f)(void *);
+    void *arg;
+} pthread_t;
+
+unsigned int pthread_counter = 0;
+
+static void wrap_thread(void *ctx) {
+    pthread_t *thread;
+
+    thread = (pthread_t *)ctx;
+    (thread->f)(thread->arg);
+
+    free(thread);
+}
+
+int pthread_create(void *a1, const void *attr, void *(*f)(void *), void *arg) {
+    pthread_t *thread;
+
+    thread = malloc(sizeof(*thread));
+    snprintf(thread->name, PTHREAD_NAME_MAX_LEN, "pthread-%u", pthread_counter);
+    thread->f = f;
+    thread->arg = arg;
+    create_thread(thread->name, wrap_thread, thread);
+    pthread_counter++;
+
+    return 0;
 }
 
 int pthread_mutex_lock(void *lock) {
