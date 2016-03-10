@@ -70,8 +70,7 @@ int sigaltstack(const void *ss, void *oss) {
 }
 
 int sigfillset(void *set) {
-    CRASH("sigfillset is not implemented");
-    return -1;
+    return 0;
 }
 
 int setenv(const void *name, const char *value, int ow) {
