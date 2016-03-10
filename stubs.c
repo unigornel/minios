@@ -44,8 +44,7 @@ int pthread_attr_destroy(void *attr) {
 }
 
 int pthread_sigmask(int how, void *set, void *oldset) {
-    CRASH("pthread_sigmask is not implemented");
-    return 1;
+    return 0;
 }
 
 // Other stubs
