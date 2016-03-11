@@ -32,6 +32,15 @@ uint64_t sys_nanotime(void)
     return monotonic_clock();
 }
 
+void sys_now(struct sys_now_t *now)
+{
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+    now->sec = tv.tv_sec;
+    now->nsec = (uint32_t)(tv.tv_usec * 1000);
+}
+
 uint64_t sys_thread_id(void)
 {
     uint64_t current_thread;
