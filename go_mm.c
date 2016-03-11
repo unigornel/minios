@@ -71,10 +71,9 @@ unsigned long alloc_num_pages_aligned(unsigned long c, int zero_bits) {
     return 0;
 }
 
-void free_pages(void *pointer, int order) {
-    unsigned long num_pages, first_page;
+void free_num_pages(void *pointer, unsigned long num_pages) {
+    unsigned long first_page;
 
-    num_pages = 1UL << order;
     first_page = virt_to_pfn(pointer);
     bitmap_free(first_page, num_pages);
 }
