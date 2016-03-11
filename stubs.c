@@ -13,20 +13,18 @@ typedef struct {
     char name[PTHREAD_NAME_MAX_LEN];
     void *(*f)(void *);
     void *arg;
+    void *tls;
 } pthread_t;
 
 unsigned int pthread_counter = 0;
 
 static void wrap_thread(void *ctx) {
     pthread_t *thread;
-    struct thread *os_thread;
 
     thread = (pthread_t *)ctx;
     (thread->f)(thread->arg);
 
-    os_thread = get_current();
-    free_num_pages((void *)(os_thread->fs - PTHREAD_TLS_SIZE), PTHREAD_TLS_PAGES);
-
+    free_num_pages(thread->tls, PTHREAD_TLS_PAGES);
     free(thread);
 }
 
@@ -38,10 +36,11 @@ int pthread_create(void *a1, const void *attr, void *(*f)(void *), void *arg) {
     snprintf(thread->name, PTHREAD_NAME_MAX_LEN, "pthread-%u", pthread_counter);
     thread->f = f;
     thread->arg = arg;
+    thread->tls = (void *)alloc_pages(PTHREAD_TLS_PAGES);
     pthread_counter++;
 
     os_thread = create_thread(thread->name, wrap_thread, thread);
-    os_thread->fs = alloc_pages(PTHREAD_TLS_PAGES) + PTHREAD_TLS_SIZE;
+    os_thread->fs = (unsigned long)thread->tls + PTHREAD_TLS_SIZE;
 
     return 0;
 }
