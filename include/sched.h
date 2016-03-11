@@ -18,6 +18,7 @@ struct thread
     MINIOS_TAILQ_ENTRY(struct thread) thread_list;
     uint32_t flags;
     s_time_t wakeup_time;
+    unsigned long fs;
 #ifdef HAVE_LIBC
     struct _reent reent;
 #endif

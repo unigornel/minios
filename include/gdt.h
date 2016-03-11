@@ -8,5 +8,6 @@
 
 void init_gdt(void);
 void switch_fs(unsigned long p);
+unsigned long get_fs(void);
 
 #endif /* GDT_H_ */
