@@ -26,13 +26,16 @@ static void wrap_thread(void *ctx) {
 
 int pthread_create(void *a1, const void *attr, void *(*f)(void *), void *arg) {
     pthread_t *thread;
+    struct thread *os_thread;
 
     thread = malloc(sizeof(*thread));
     snprintf(thread->name, PTHREAD_NAME_MAX_LEN, "pthread-%u", pthread_counter);
     thread->f = f;
     thread->arg = arg;
-    create_thread(thread->name, wrap_thread, thread);
     pthread_counter++;
+
+    os_thread = create_thread(thread->name, wrap_thread, thread);
+    os_thread->fs = alloc_page() + PAGE_SIZE;
 
     return 0;
 }

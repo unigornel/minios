@@ -45,6 +45,7 @@
 #include <mini-os/list.h>
 #include <mini-os/sched.h>
 #include <mini-os/semaphore.h>
+#include <mini-os/gdt.h>
 
 
 #ifdef SCHED_DEBUG
@@ -126,7 +127,11 @@ void schedule(void)
     local_irq_restore(flags);
     /* Interrupting the switch is equivalent to having the next thread
        inturrupted at the return instruction. And therefore at safe point. */
-    if(prev != next) switch_threads(prev, next);
+    if(prev != next) {
+        prev->fs = get_fs();
+        switch_fs(next->fs);
+        switch_threads(prev, next);
+    }
 
     MINIOS_TAILQ_FOREACH_SAFE(thread, &exited_threads, thread_list, tmp)
     {

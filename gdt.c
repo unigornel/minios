@@ -10,6 +10,7 @@
 #include <mini-os/mm.h>
 #include <mini-os/types.h>
 #include <mini-os/lib.h>
+#include <mini-os/crash.h>
 
 /**
  * seg_desc_t represents one entry in the GDT.
@@ -105,6 +106,7 @@ void seg_desc_fill(seg_desc_t *sd, seg_desc_type_t type)
 
 void switch_fs(unsigned long p)
 {
+    ASSERT((p & 0xFFFFFFFF) == p, "FS base is limited to 32 bits");
 
     fs.desc.lobase = p & 0xFFFFFF;
     fs.desc.hibase = (p >> 24) & 0xFF;
@@ -114,6 +116,14 @@ void switch_fs(unsigned long p)
     }
 
     __asm__ __volatile__("mov %0, %%fs" :: "r"(KERNEL_FS));
+}
+
+unsigned long get_fs(void)
+{
+    unsigned long p = 0;
+    p |= (unsigned long)gdt[SEG_DESC_FS].hibase << 24;
+    p |= (unsigned long)gdt[SEG_DESC_FS].lobase;
+    return p;
 }
 
 void init_gdt(void)
