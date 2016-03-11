@@ -91,8 +91,7 @@ void abort(void) {
 }
 
 int sigaltstack(const void *ss, void *oss) {
-    CRASH("signaltstack is not implemented");
-    return -1;
+    return 0;
 }
 
 int sigfillset(void *set) {
