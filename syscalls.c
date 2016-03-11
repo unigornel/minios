@@ -41,3 +41,25 @@ uint64_t sys_thread_id(void)
 
     return current_thread;
 }
+
+void sys_usleep(uint32_t usec)
+{
+    uint64_t nsec;
+    nsec = (uint64_t)usec * 1000UL;
+    sys_nanosleep(nsec);
+}
+
+void sys_nanosleep(uint64_t nsec)
+{
+    s_time_t stop;
+    struct thread *thread;
+
+    stop = NOW() + nsec;
+    thread = get_current();
+
+    while(stop > NOW()) {
+        thread->wakeup_time = stop;
+        clear_runnable(thread);
+        schedule();
+    }
+}
