@@ -32,6 +32,7 @@
 #include <mini-os/hypervisor.h>
 #include <mini-os/mm.h>
 #include <mini-os/gdt.h>
+#include <mini-os/futex.h>
 #include <mini-os/events.h>
 #include <mini-os/time.h>
 #include <mini-os/types.h>
@@ -146,6 +147,9 @@ void start_kernel(void)
  
     /* Init XenBus */
     init_xenbus();
+
+    /* Init futexes */
+    init_futex();
 
 #ifdef CONFIG_XENBUS
     create_thread("shutdown", shutdown_thread, NULL);
