@@ -6,6 +6,8 @@
 #include <mini-os/lib.h>
 
 #define PTHREAD_NAME_MAX_LEN 64
+#define PTHREAD_TLS_PAGES 1
+#define PTHREAD_TLS_SIZE (PAGE_SIZE * PTHREAD_TLS_PAGES)
 
 typedef struct {
     char name[PTHREAD_NAME_MAX_LEN];
@@ -17,9 +19,13 @@ unsigned int pthread_counter = 0;
 
 static void wrap_thread(void *ctx) {
     pthread_t *thread;
+    struct thread *os_thread;
 
     thread = (pthread_t *)ctx;
     (thread->f)(thread->arg);
+
+    os_thread = get_current();
+    free_num_pages((void *)(os_thread->fs - PTHREAD_TLS_SIZE), PTHREAD_TLS_PAGES);
 
     free(thread);
 }
@@ -35,7 +41,7 @@ int pthread_create(void *a1, const void *attr, void *(*f)(void *), void *arg) {
     pthread_counter++;
 
     os_thread = create_thread(thread->name, wrap_thread, thread);
-    os_thread->fs = alloc_page() + PAGE_SIZE;
+    os_thread->fs = alloc_pages(PTHREAD_TLS_PAGES) + PTHREAD_TLS_SIZE;
 
     return 0;
 }
