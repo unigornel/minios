@@ -6,6 +6,7 @@
 #include <mini-os/sched.h>
 #include <mini-os/xmalloc.h>
 #include <mini-os/lib.h>
+#include <mini-os/wait.h>
 
 #define PTHREAD_TLS_PAGES 1
 #define PTHREAD_TLS_SIZE (PAGE_SIZE * PTHREAD_TLS_PAGES)
@@ -51,14 +52,14 @@ int pthread_mutex_unlock(void *lock) {
     return 1;
 }
 
-int pthread_cond_wait(void *cond, void *mutex) {
-    CRASH("pthread_cond_wait is not implemented");
-    return 1;
+int pthread_cond_wait(struct wait_queue_head *wq, int *condition) {
+    wait_event(*wq, *condition);
+    return 0;
 }
 
-int pthread_cond_broadcast(void *cond) {
-    CRASH("pthread_cond_broadcast is not implemented");
-    return 1;
+int pthread_cond_broadcast(struct wait_queue_head *wq) {
+    wake_up(wq);
+    return 0;
 }
 
 int pthread_attr_init(void *attr) {

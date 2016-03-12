@@ -10,7 +10,7 @@ endif
 
 CGO_CFLAGS+=-I$(abspath ./include)
 
-HEADERS=stubs.h types.h
+HEADERS=stubs.h syscalls.h types.h waittypes.h list.h
 HEADERS_SOURCE=$(patsubst %,../../../include/%,$(HEADERS))
 HEADERS_LOCAL=$(patsubst %,include/%,$(HEADERS))
 

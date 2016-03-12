@@ -2,6 +2,7 @@
 #define _STUBS_H_
 
 #include <mini-os/types.h>
+#include <mini-os/waittypes.h>
 
 #define PTHREAD_NAME_MAX_LEN 64
 
@@ -15,8 +16,8 @@ typedef struct {
 int pthread_create(pthread_t *t, const void *attr, void *(*f)(void *), void *arg);
 int pthread_mutex_lock(void *lock);
 int pthread_mutex_unlock(void *lock);
-int pthread_cond_wait(void *cond, void *mutex);
-int pthread_cond_broadcast(void *cond);
+int pthread_cond_wait(struct wait_queue_head *wq, int *condition);
+int pthread_cond_broadcast(struct wait_queue_head *wq);
 int pthread_attr_init(void *attr);
 int pthread_attr_getstacksize(void *attr, size_t *stacksize);
 int pthread_attr_destroy(void *attr);
