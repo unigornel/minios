@@ -10,9 +10,6 @@
 
 extern void _rt0_amd64_netbsd_lib(void);
 
-DECLARE_WAIT_QUEUE_HEAD(initialize_go_wq);
-int initialize_go_cond = 0;
-
 static void initialize_go_thread(void *ctx) {
     unsigned long tls_page;
     unsigned int v;
@@ -34,16 +31,10 @@ static void initialize_go_thread(void *ctx) {
     _rt0_amd64_netbsd_lib();
     printk("initialize_go_thread: go is initialized\n");
 
-    initialize_go_cond = 1;
-    wake_up(&initialize_go_wq);
 }
 
 static void main_thread(void *ctx) {
     GoInt i;
-
-    printk("main_thread: waiting for Go to initialize\n");
-    wait_event(initialize_go_wq, initialize_go_cond);
-    printk("main_thread: go is initialized\n");
 
     i = Sum(3, 4);
     printk("main_thread: result: %lld\n", i);
