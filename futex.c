@@ -41,6 +41,8 @@ int32_t sys_futex_wait(uint32_t *addr, uint32_t val, int64_t ns)
 
         deadline = (ns ? NOW() + ns : 0);
         wait_event_deadline(f->wq, f->woken, deadline);
+
+        free(f);
     }
 
     return 0;
@@ -61,7 +63,6 @@ int32_t sys_futex_wake(uint32_t *addr, uint32_t max)
 
             g = *f->entries.tqe_prev;
             MINIOS_TAILQ_REMOVE(&futexes.queue, f, entries);
-            free(f);
             f = g;
         }
     }
