@@ -23,16 +23,15 @@ static void wrap_thread(void *ctx) {
     free(thread);
 }
 
-int pthread_create(pthread_t *t, const void *attr, void *(*f)(void *), void *arg) {
+int pthread_create_name(pthread_t *t, const char *name, const void *attr, void *(*f)(void *), void *arg) {
     pthread_t *thread;
     struct thread *os_thread;
 
     thread = malloc(sizeof(*thread));
-    snprintf(thread->name, PTHREAD_NAME_MAX_LEN, "pthread-%u", pthread_counter);
+    snprintf(thread->name, PTHREAD_NAME_MAX_LEN, "%s", name);
     thread->f = f;
     thread->arg = arg;
     thread->tls = (void *)alloc_pages(PTHREAD_TLS_PAGES);
-    pthread_counter++;
 
     os_thread = create_thread(thread->name, wrap_thread, thread);
     os_thread->fs = (unsigned long)thread->tls + PTHREAD_TLS_SIZE;
@@ -40,6 +39,14 @@ int pthread_create(pthread_t *t, const void *attr, void *(*f)(void *), void *arg
     memcpy(t, thread, sizeof(*t));
 
     return 0;
+}
+
+int pthread_create(pthread_t *t, const void *attr, void *(*f)(void *), void *arg) {
+    char name[PTHREAD_NAME_MAX_LEN];
+    snprintf(name, PTHREAD_NAME_MAX_LEN, "pthread-%u", pthread_counter);
+    pthread_counter++;
+
+    return pthread_create_name(t, name, attr, f, arg);
 }
 
 int pthread_mutex_lock(void *lock) {

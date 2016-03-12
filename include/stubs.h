@@ -14,6 +14,7 @@ typedef struct {
 } pthread_t;
 
 int pthread_create(pthread_t *t, const void *attr, void *(*f)(void *), void *arg);
+int pthread_create_name(pthread_t *t, const char *name, const void *attr, void *(*f)(void *), void *arg);
 int pthread_mutex_lock(void *lock);
 int pthread_mutex_unlock(void *lock);
 int pthread_cond_wait(struct wait_queue_head *wq, int *condition);
