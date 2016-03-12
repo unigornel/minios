@@ -1,3 +1,5 @@
+#include <mini-os/stubs.h>
+
 #include <mini-os/types.h>
 #include <mini-os/mm.h>
 #include <mini-os/crash.h>
@@ -5,16 +7,8 @@
 #include <mini-os/xmalloc.h>
 #include <mini-os/lib.h>
 
-#define PTHREAD_NAME_MAX_LEN 64
 #define PTHREAD_TLS_PAGES 1
 #define PTHREAD_TLS_SIZE (PAGE_SIZE * PTHREAD_TLS_PAGES)
-
-typedef struct {
-    char name[PTHREAD_NAME_MAX_LEN];
-    void *(*f)(void *);
-    void *arg;
-    void *tls;
-} pthread_t;
 
 unsigned int pthread_counter = 0;
 
@@ -28,7 +22,7 @@ static void wrap_thread(void *ctx) {
     free(thread);
 }
 
-int pthread_create(void *a1, const void *attr, void *(*f)(void *), void *arg) {
+int pthread_create(pthread_t *t, const void *attr, void *(*f)(void *), void *arg) {
     pthread_t *thread;
     struct thread *os_thread;
 
@@ -41,6 +35,8 @@ int pthread_create(void *a1, const void *attr, void *(*f)(void *), void *arg) {
 
     os_thread = create_thread(thread->name, wrap_thread, thread);
     os_thread->fs = (unsigned long)thread->tls + PTHREAD_TLS_SIZE;
+
+    memcpy(t, thread, sizeof(*t));
 
     return 0;
 }
