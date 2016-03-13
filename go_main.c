@@ -17,13 +17,8 @@ static void *initialize_go_thread(void *ctx) {
 }
 
 static void *main_thread(void *ctx) {
-    GoInt i;
-
-    i = Sum(3, 4);
-    printk("main_thread: result: %lld\n", i);
-
+    Main(0);
     CRASH("main thread must not return");
-
     return NULL;
 }
 
