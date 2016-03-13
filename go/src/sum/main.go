@@ -1,10 +1,11 @@
 package main
 
 import "C"
+import "fmt"
 
 func main() {}
 
-//export Sum
-func Sum(a, b int) int {
-	return a + b
+//export Main
+func Main(unused int) {
+	fmt.Println("Hello World!")
 }
