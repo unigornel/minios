@@ -119,6 +119,8 @@ struct thread* arch_create_thread(char *name, void (*function)(void *),
 
 void run_idle_thread(void)
 {
+    sched_current_thread = idle_thread;
+
     /* Switch stacks and run the thread */ 
 #if defined(__i386__)
     __asm__ __volatile__("mov %0,%%esp\n\t"
