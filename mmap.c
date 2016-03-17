@@ -47,7 +47,7 @@ void *sys_mmap(void *addr, size_t length, int32_t prot, int32_t flags, int32_t f
     num_pages = length >> PAGE_SHIFT;
     num_pages += ((length & PAGE_SIZE) > 0);
 
-    return (void *)alloc_num_pages_aligned(num_pages, 0);
+    return (void *)alloc_num_pages(num_pages);
 }
 
 static void *reserve(void *addr, size_t length)
@@ -65,7 +65,7 @@ static void *reserve(void *addr, size_t length)
     num_pages = length >> PAGE_SHIFT;
     num_pages += ((length & PAGE_SIZE) > 0);
 
-    reserved.address = alloc_num_pages_aligned(num_pages, 0);
+    reserved.address = alloc_num_pages(num_pages);
     reserved.pages = num_pages;
     reserved.max_address = reserved.address + (num_pages << PAGE_SHIFT);
 

@@ -99,7 +99,7 @@ struct thread* arch_create_thread(char *name, void (*function)(void *),
     
     thread = xmalloc(struct thread);
     /* We can't use lazy allocation here since the trap handler runs on the stack */
-    thread->stack = (char *)alloc_pages_aligned(STACK_SIZE_PAGE_ORDER, STACK_SIZE_PAGE_ORDER << 2);
+    thread->stack = (char *)alloc_pages(STACK_SIZE_PAGE_ORDER);
     thread->name = name;
     printk("Thread \"%s\": pointer: 0x%p, stack: 0x%p\n", name, thread, 
             thread->stack);

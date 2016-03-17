@@ -305,6 +305,17 @@ unsigned long alloc_pages(int order)
     return 0;
 }
 
+unsigned long alloc_num_pages(unsigned long n) {
+    unsigned long v;
+    int r = 0;
+
+    v = n;
+    while(v >>= 1) {
+        r++;
+    }
+    return alloc_pages(r);
+}
+
 void free_pages(void *pointer, int order)
 {
     chunk_head_t *freed_ch, *to_merge_ch;
@@ -359,6 +370,17 @@ void free_pages(void *pointer, int order)
     freed_ch->next->pprev = &freed_ch->next;
     free_head[order] = freed_ch;   
    
+}
+
+void free_num_pages(void *pointer, unsigned long n) {
+    unsigned long v;
+    int r = 0;
+
+    v = n;
+    while(v >>= 1) {
+        r++;
+    }
+    free_pages(pointer, r);
 }
 
 int free_physical_pages(xen_pfn_t *mfns, int n)
