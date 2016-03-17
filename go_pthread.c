@@ -35,7 +35,7 @@ int pthread_create_name(pthread_t *t, const char *name, const void *attr, void *
     snprintf(thread->name, PTHREAD_NAME_MAX_LEN, "%s", name);
     thread->f = f;
     thread->arg = arg;
-    thread->tls = (void *)alloc_pages(PTHREAD_TLS_PAGES);
+    thread->tls = (void *)alloc_num_pages(PTHREAD_TLS_PAGES);
 
     os_thread = create_thread(thread->name, wrap_thread, thread);
     os_thread->fs = (unsigned long)thread->tls + PTHREAD_TLS_SIZE;
