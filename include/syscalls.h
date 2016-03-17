@@ -23,4 +23,6 @@ uint64_t sys_thread_id(void);
 void sys_usleep(uint32_t usec);
 void sys_nanosleep(uint64_t nsec);
 
+void _unimplemented_syscall(void);
+
 #endif /* _SYSCALL_H */

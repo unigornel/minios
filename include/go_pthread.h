@@ -1,5 +1,11 @@
-#ifndef _STUBS_H_
-#define _STUBS_H_
+/**
+ * pthread.h
+ *
+ * Minimal pthreads implementation for Mini-OS as needed by the Go runtime.
+ */
+
+#ifndef _PTHREAD_H_
+#define _PTHREAD_H_
 
 #include <mini-os/types.h>
 #include <mini-os/waittypes.h>
@@ -24,16 +30,4 @@ int pthread_attr_getstacksize(void *attr, size_t *stacksize);
 int pthread_attr_destroy(void *attr);
 int pthread_sigmask(int how, void *set, void *oldset);
 
-extern void *stderr;
-char *strerror(int errno);
-int __fprintf_chk(void *fh, int flag, const char *format, ...);
-void abort(void);
-int sigaltstack(const void *ss, void *oss);
-int sigfillset(void *set);
-int setenv(const void *name, const char *value, int ow);
-int unsetenv(const void *name);
-int fprintf(void *fh, const char *format, ...);
-size_t fwrite(const void *data, size_t size, size_t n, void *fh);
-void _unimplemented_syscall(void);
-
-#endif /* _STUBS_H_ */
+#endif /* _PTHREAD_H_ */

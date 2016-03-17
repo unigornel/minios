@@ -98,8 +98,9 @@ src-y += go_main.c
 src-y += go_mm.c
 src-$(CONFIG_NETFRONT) += netfront.c
 src-$(CONFIG_PCIFRONT) += pcifront.c
+src-y += go_pthread.c
+src-y += runtime.c
 src-y += sched.c
-src-y += stubs.c
 src-y += syscalls.c
 src-$(CONFIG_TEST) += test.c
 

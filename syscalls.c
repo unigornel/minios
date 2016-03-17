@@ -72,3 +72,7 @@ void sys_nanosleep(uint64_t nsec)
         schedule();
     }
 }
+
+void _unimplemented_syscall(void) {
+    CRASH("_unimplemented_syscall was called")
+}

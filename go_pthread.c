@@ -1,12 +1,16 @@
-#include <mini-os/stubs.h>
+/**
+ * pthread.h
+ *
+ * Minimal pthreads implementation for Mini-OS as needed by the Go runtime.
+ */
 
-#include <mini-os/types.h>
+#include <mini-os/go_pthread.h>
+
 #include <mini-os/mm.h>
-#include <mini-os/crash.h>
-#include <mini-os/sched.h>
+#include <mini-os/wait.h>
 #include <mini-os/xmalloc.h>
 #include <mini-os/lib.h>
-#include <mini-os/wait.h>
+#include <mini-os/crash.h>
 
 #define PTHREAD_TLS_PAGES 1
 #define PTHREAD_TLS_SIZE (PAGE_SIZE * PTHREAD_TLS_PAGES)
@@ -84,51 +88,4 @@ int pthread_attr_destroy(void *attr) {
 
 int pthread_sigmask(int how, void *set, void *oldset) {
     return 0;
-}
-
-// Other stubs
-void *stderr;
-
-char *strerror(int errno) {
-    return "";
-}
-
-int __fprintf_chk(void *fh, int flag, const char *format, ...) {
-    CRASH("__fprintf_chk is not implemented");
-    return -1;
-}
-
-void abort(void) {
-    CRASH("abort was called");
-}
-
-int sigaltstack(const void *ss, void *oss) {
-    return 0;
-}
-
-int sigfillset(void *set) {
-    return 0;
-}
-
-int setenv(const void *name, const char *value, int ow) {
-    CRASH("setenv is not implemented");
-    return -1;
-}
-
-int unsetenv(const void *name) {
-    CRASH("unsetenv is not implemented");
-    return 0;
-}
-
-int fprintf(void *fh, const char *format, ...) {
-    CRASH("fprintf is not implemented");
-    return -1;
-}
-
-size_t fwrite(const void *data, size_t size, size_t n, void *fh) {
-    return 0;
-}
-
-void _unimplemented_syscall(void) {
-    CRASH("_unimplemented_syscall was called")
 }
