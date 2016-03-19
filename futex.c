@@ -50,20 +50,16 @@ int32_t sys_futex_wait(uint32_t *addr, uint32_t val, int64_t ns)
 
 int32_t sys_futex_wake(uint32_t *addr, uint32_t max)
 {
-    futex_t *f;
+    futex_t *f, *tf;
     int32_t count = 0;
 
-    for(f = futexes.queue.tqh_first; f != NULL && count < max; f = f->entries.tqe_next) {
+    MINIOS_TAILQ_FOREACH_SAFE(f, &futexes.queue, entries, tf) {
         if(f->address == addr) {
-            futex_t *g;
-
             count++;
             f->woken = 1;
             wake_up(&f->wq);
 
-            g = *f->entries.tqe_prev;
             MINIOS_TAILQ_REMOVE(&futexes.queue, f, entries);
-            f = g;
         }
     }
 
