@@ -8,6 +8,10 @@
 #include <sys/reent.h>
 #endif
 
+extern struct thread *sched_current_thread;
+
+#define get_current() (sched_current_thread)
+
 struct thread
 {
     char *name;

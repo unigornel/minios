@@ -64,6 +64,8 @@ static int threads_started;
 
 struct thread *main_thread;
 
+struct thread *sched_current_thread;
+
 void inline print_runqueue(void)
 {
     struct thread *th;
@@ -130,6 +132,7 @@ void schedule(void)
     if(prev != next) {
         prev->fs = get_fs();
         switch_fs(next->fs);
+        sched_current_thread = next;
         switch_threads(prev, next);
     }
 

@@ -10,39 +10,42 @@
 #include <mini-os/xmalloc.h>
 #include <mini-os/wait.h>
 #include <mini-os/time.h>
+#include <mini-os/crash.h>
 
-typedef struct _futex futex_t;
-typedef MINIOS_TAILQ_HEAD(, futex_t) futex_queue_t;
 
-struct _futex {
+#define NUM_FUTEXES 10
+
+typedef struct {
     uint32_t *address;
     struct wait_queue_head wq;
-    int woken;
+    volatile int woken;
+} futex_t;
 
-    MINIOS_TAILQ_ENTRY(futex_t) entries;
-};
-
-static struct {
-    futex_queue_t queue;
-} futexes;
+static futex_t futexes[NUM_FUTEXES];
 
 int32_t sys_futex_wait(uint32_t *addr, uint32_t val, int64_t ns)
 {
     if(*addr == val) {
-        futex_t *f;
         s_time_t deadline;
+        futex_t *f = NULL;
+        int i;
 
-        f = malloc(sizeof(*f));
+        for(i = 0; i < NUM_FUTEXES; i++) {
+            if(futexes[i].address == NULL) {
+                f = &futexes[i];
+                break;
+            }
+        }
+
+        ASSERT(f != NULL, "error: all futexes have been used");
+
         f->address = addr;
         f->woken = 0;
         init_waitqueue_head(&f->wq);
 
-        MINIOS_TAILQ_INSERT_TAIL(&futexes.queue, f, entries);
-
         deadline = (ns ? NOW() + ns : 0);
-        wait_event_deadline(f->wq, f->woken, deadline);
-
-        free(f);
+        wait_event_deadline(f->wq, f->woken != 0, deadline);
+        f->address = NULL;
     }
 
     return 0;
@@ -52,18 +55,14 @@ int32_t sys_futex_wake(uint32_t *addr, uint32_t max)
 {
     futex_t *f;
     int32_t count = 0;
+    int i;
 
-    for(f = futexes.queue.tqh_first; f != NULL && count < max; f = f->entries.tqe_next) {
+    for(i = 0; i < NUM_FUTEXES && count < max; i++) {
+        f = &futexes[i];
         if(f->address == addr) {
-            futex_t *g;
-
             count++;
             f->woken = 1;
             wake_up(&f->wq);
-
-            g = *f->entries.tqe_prev;
-            MINIOS_TAILQ_REMOVE(&futexes.queue, f, entries);
-            f = g;
         }
     }
 
@@ -72,5 +71,4 @@ int32_t sys_futex_wake(uint32_t *addr, uint32_t max)
 
 void init_futex(void)
 {
-    MINIOS_TAILQ_INIT(&futexes.queue);
 }
