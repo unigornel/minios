@@ -84,6 +84,7 @@ src-$(CONFIG_TPM_TIS) += tpm_tis.c
 src-$(CONFIG_TPMBACK) += tpmback.c
 src-y += daytime.c
 src-y += events.c
+src-y += experimental.c
 src-$(CONFIG_FBFRONT) += fbfront.c
 src-y += futex.c
 src-y += gdt.c
