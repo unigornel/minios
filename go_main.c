@@ -7,11 +7,11 @@
 #include <mini-os/go_pthread.h>
 #include <mini-os/crash.h>
 
-extern void _rt0_amd64_netbsd_lib(void);
+extern void _rt0_amd64_unigornel_lib(void);
 extern void Main(long long);
 
 static void *initialize_go_thread(void *ctx) {
-    _rt0_amd64_netbsd_lib();
+    _rt0_amd64_unigornel_lib();
     return NULL;
 }
 
