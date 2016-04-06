@@ -58,6 +58,7 @@ static uint32_t shadow_ts_version;
 
 static struct shadow_time_info shadow;
 
+static void update_wallclock(void);
 
 #ifndef rmb
 #define rmb()  __asm__ __volatile__ ("lock; addl $0,0(%%esp)": : :"memory")
@@ -141,6 +142,7 @@ static void get_time_values_from_xen(void)
 	}
 	while ((src->version & 1) | (shadow.version ^ src->version));
 
+	update_wallclock();
 	shadow.tsc_to_usec_mul = shadow.tsc_to_nsec_mul / 1000;
 }
 
@@ -217,7 +219,6 @@ void block_domain(s_time_t until)
 static void timer_handler(evtchn_port_t ev, struct pt_regs *regs, void *ign)
 {
     get_time_values_from_xen();
-    update_wallclock();
 }
 
 
