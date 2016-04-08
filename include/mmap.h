@@ -16,6 +16,7 @@
 #define MAP_ANON        0x1000
 #define MAP_PRIVATE     0x2
 
+//sys sys_mmap runtime.mmap(addr unsafe.Pointer, n uintptr, prot int32, flags int32, fd int32, offset uint32)
 void *sys_mmap(void *addr, size_t length, int32_t prot, int32_t flags, int32_t fd, int32_t offset);
 
 #endif /* _MMAP_H_ */
