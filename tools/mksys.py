@@ -22,63 +22,77 @@ GOASM_HEADER = """\
 #include "textflag.h"
 """
 
-def main(input, cmd, goname_replace, error):
+def goasm(input, cmd, goname_replace, error):
     print(GOASM_HEADER.format(cmd=cmd))
 
+    syscalls, ok = read_syscalls(input, cmd, goname_replace, error)
+    for filename, lineno, s in syscalls:
+        try:
+            print()
+            print(s.to_goasm())
+        except MksysException as exc:
+            error(filename, lineno, str(exc))
+            ok = False
+
+    return ok
+
+def read_syscalls(input, cmd, goname_replace, error):
+    import fileinput
+    syscalls = []
     state = None
     did_error = False
-    for linenumber, line in enumerate(input):
+    for line in input:
         line = line.strip()
         state = process(error, goname_replace, line, state)
         if not state:
             did_error = True
 
-    return not did_error
+        state_t, state_s = state
+        if state_t == process.STATE_DONE:
+            syscalls.append((fileinput.filename(), fileinput.lineno(), state_s))
+
+    return (syscalls, not did_error)
 
 def process(error, goname_replace, line, state):
     import fileinput
 
-    STATE_NEW = 0
-    STATE_MANUAL = 1
-
-    state, syscall = state if state is not None else (STATE_NEW, None)
+    state, syscall = state if state is not None else (process.STATE_NEW, None)
 
     try:
-        if state == STATE_MANUAL:
+        if state == process.STATE_MANUAL:
             is_ret = syscall.add_line_to_body(line)
-            if is_ret:
-                print("\n" + syscall.to_goasm())
-            return (STATE_NEW if is_ret else STATE_MANUAL, syscall)
+            return (process.STATE_DONE if is_ret else process.STATE_MANUAL, syscall)
 
         syscall = Syscall.from_line(line)
         if syscall:
             syscall.goname = goname_replace(syscall.goname)
-            print("\n" + syscall.to_goasm())
-            return (STATE_NEW, syscall)
+            return (process.STATE_DONE, syscall)
 
         syscall = ManualSyscall.from_line(line)
         if syscall:
             syscall.goname = goname_replace(syscall.goname)
-            return (STATE_MANUAL, syscall)
+            return (process.STATE_MANUAL, syscall)
 
-    except (ManualSyscall.InvalidDeclarationException,
-            ManualSyscall.InvalidLineException,
-            Syscall.InvalidSyscallLineException,
-            Syscall.TooManyInputArguments,
-            Argument.InvalidArgumentStringException,
-            Argument.UnknownTypeException) as exc:
+    except MksysException as exc:
         error(fileinput.filename(), fileinput.lineno(), str(exc))
         return None
 
-    return (STATE_NEW, None)
+    return (process.STATE_NEW, None)
+
+process.STATE_NEW = 0
+process.STATE_MANUAL = 1
+process.STATE_DONE = 2
+
+class MksysException(Exception):
+    pass
 
 class Syscall(object):
-    class InvalidSyscallLineException(Exception):
+    class InvalidSyscallLineException(MksysException):
         def __init__(self):
             msg = 'Invalid syscall specification'
             super(Syscall.InvalidSyscallLineException, self).__init__(msg)
 
-    class TooManyInputArguments(Exception):
+    class TooManyInputArguments(MksysException):
         def __init__(self):
             msg = 'Too many input arguments'
             super(Syscall.TooManyInputArguments, self).__init__(msg)
@@ -158,12 +172,12 @@ class Syscall(object):
         return "func {0}({1}){2}".format(self.go_func_name, i, o)
 
 class ManualSyscall(Syscall):
-    class InvalidDeclarationException(Exception):
+    class InvalidDeclarationException(MksysException):
         def __init__(self):
             msg = 'Invalid manual syscall declaration'
             super(ManualSyscall.InvalidDeclarationException, self).__init__(msg)
 
-    class InvalidLineException(Exception):
+    class InvalidLineException(MksysException):
         def __init__(self):
             msg = 'Invalid line in manual syscall declaration'
             super(ManualSyscall.InvalidLineException, self).__init__(msg)
@@ -173,6 +187,10 @@ class ManualSyscall(Syscall):
         self.goname = goname
         self.stacksize = stacksize
         self.body = []
+
+    def __repr__(self):
+        t = (self.cname, self.goname, self.stacksize)
+        return 'ManualSyscall(cname=%s, goname=%s, stacksize=%d)' % t
 
     def add_line_to_body(self, line):
         import re
@@ -217,13 +235,13 @@ class Argument(object):
         'uintptr' : 8,
         'unsafe.Pointer' : 8,
     }
-    class UnknownTypeException(Exception):
+    class UnknownTypeException(MksysException):
         def __init__(self, type):
             self.type = type
             msg = 'Unknown argument type: {0}'.format(type)
             super(Argument.UnknownTypeException, self).__init__(msg)
 
-    class InvalidArgumentStringException(Exception):
+    class InvalidArgumentStringException(MksysException):
         def __init__(self, string):
             self.string = string
             msg = 'Invalid argument string: {0}'.format(string)
@@ -304,5 +322,5 @@ if __name__ == "__main__":
         return package + '.' + func
 
     input = fileinput.input(args.files)
-    if not main(input, cmd=cmd, goname_replace=r, error=e):
+    if not goasm(input, cmd=cmd, goname_replace=r, error=e):
         sys.exit(1)
