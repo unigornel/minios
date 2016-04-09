@@ -21,7 +21,7 @@ void _unimplemented_syscall(void);
 //sys sys_write runtime.write(fd uint64, p unsafe.Pointer, n int32) int32
 int32_t sys_write(uint64_t fd, void *p, int32_t n);
 
-//sys sys_nanotime runtime.nanotime()
+//sys sys_nanotime runtime.nanotime() uint64
 uint64_t sys_nanotime(void);
 
 //sysasm sys_now time.now 16
@@ -35,7 +35,7 @@ uint64_t sys_nanotime(void);
 //RET
 void sys_now(struct sys_now_t *now);
 
-//sys sys_thread_id runtime.thread_id()
+//sys sys_thread_id runtime.thread_id() uint64
 uint64_t sys_thread_id(void);
 
 //sys sys_usleep runtime.usleep(usec uint32)
