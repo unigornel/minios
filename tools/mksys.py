@@ -155,7 +155,7 @@ class Syscall(object):
             return None
 
         m = m.group(1).strip()
-        m = re.match('(\w+)\s+([\w\.]+)\((.*)\)\s*(\w*)$', m)
+        m = re.match('(\w+)\s+([\w\.]+)\((.*)\)\s*([\w\.]*)$', m)
         if not m:
             raise cls.InvalidSyscallLineException()
 
