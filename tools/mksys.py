@@ -18,7 +18,6 @@ GOASM_HEADER = """\
 //
 
 #include "go_asm.h"
-#include "go_tls.h"
 #include "textflag.h"
 """
 
