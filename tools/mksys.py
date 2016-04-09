@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import sys
-import fileinput
 
 AMD64_PARAM_REGISTERS = ['DI', 'SI', 'DX', 'CX', 'R8', 'R9']
 AMD64_FUNCTION_REGISTER = 'AX'
@@ -23,20 +22,22 @@ GOASM_HEADER = """\
 #include "textflag.h"
 """
 
-def main(cmd, error):
+def main(input, cmd, goname_replace, error):
     print(GOASM_HEADER.format(cmd=cmd))
 
     state = None
     did_error = False
-    for linenumber, line in enumerate(fileinput.input()):
+    for linenumber, line in enumerate(input):
         line = line.strip()
-        state = process(error, linenumber + 1, line, state)
+        state = process(error, goname_replace, line, state)
         if not state:
             did_error = True
 
     return not did_error
 
-def process(error, linenumber, line, state):
+def process(error, goname_replace, line, state):
+    import fileinput
+
     STATE_NEW = 0
     STATE_MANUAL = 1
 
@@ -46,16 +47,18 @@ def process(error, linenumber, line, state):
         if state == STATE_MANUAL:
             is_ret = syscall.add_line_to_body(line)
             if is_ret:
-                print(syscall.to_goasm())
+                print("\n" + syscall.to_goasm())
             return (STATE_NEW if is_ret else STATE_MANUAL, syscall)
 
         syscall = Syscall.from_line(line)
         if syscall:
-            print(syscall.to_goasm())
+            syscall.goname = goname_replace(syscall.goname)
+            print("\n" + syscall.to_goasm())
             return (STATE_NEW, syscall)
 
         syscall = ManualSyscall.from_line(line)
         if syscall:
+            syscall.goname = goname_replace(syscall.goname)
             return (STATE_MANUAL, syscall)
 
     except (ManualSyscall.InvalidDeclarationException,
@@ -64,7 +67,7 @@ def process(error, linenumber, line, state):
             Syscall.TooManyInputArguments,
             Argument.InvalidArgumentStringException,
             Argument.UnknownTypeException) as exc:
-        error(fileinput.filename(), linenumber, str(exc))
+        error(fileinput.filename(), fileinput.lineno(), str(exc))
         return None
 
     return (STATE_NEW, None)
@@ -142,7 +145,7 @@ class Syscall(object):
             arg = Argument('ret', self.output)
             mov = 'L' if self.output == 4 else 'Q'
             t += "\tMOV{0}\t{1}, ret+{2}(FP)\n".format(mov, AMD64_RETURN_REGISTER, stack.popq())
-        t += "\tRET\n"
+        t += "\tRET"
         return t
 
     def to_go_declaration(self):
@@ -203,7 +206,7 @@ class ManualSyscall(Syscall):
     def to_goasm(self):
         t = "TEXT {0}(SB),NOSPLIT,${1}\n".format(self.goasm_name, self.stacksize)
         t += "\n".join(self.body)
-        return t
+        return t.strip()
 
 class Argument(object):
     SIZES = {
@@ -278,9 +281,28 @@ class GoStack(object):
         return o
 
 if __name__ == "__main__":
+    import fileinput
+    from argparse import ArgumentParser
+
+    cmd = ' '.join(['mksys.py'] + sys.argv[1:])
+
+    parser = ArgumentParser(description='Generate Go assembly for calling system calls')
+    parser.add_argument('files', metavar='file', type=str, nargs='+', help='annotated files with syscall declarations')
+    parser.add_argument('--package', type=str, help='replace package in syscall declarations')
+    parser.add_argument('--prefix', type=str, help='prefix function names')
+    args = parser.parse_args(sys.argv[1:])
+
     def e(file, line, msg):
         print('error: {0}:{1}: {2}'.format(file, line, msg), file=sys.stderr)
 
-    cmd = ' '.join(['mksys.py'] + sys.argv[1:])
-    if not main(cmd, error=e):
+    def r(goname):
+        package, func = goname.rsplit('.', 1)
+        if args.package:
+            package = args.package
+        if args.prefix:
+            func = args.prefix + func[:1].upper() + func[1:]
+        return package + '.' + func
+
+    input = fileinput.input(args.files)
+    if not main(input, cmd=cmd, goname_replace=r, error=e):
         sys.exit(1)
