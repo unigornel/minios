@@ -34,6 +34,8 @@ GODECL_HEADER = """\
 //
 
 package {package}
+
+import "unsafe"
 """
 
 def goasm(input, cmd, edit_syscall, error):
