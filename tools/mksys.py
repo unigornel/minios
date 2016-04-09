@@ -37,10 +37,10 @@ GODECL_HEADER = """\
 package {package}
 """
 
-def goasm(input, cmd, goname_replace, error):
+def goasm(input, cmd, edit_syscall, error):
     print(GOASM_HEADER.format(cmd=cmd))
 
-    syscalls, ok = read_syscalls(input, cmd, goname_replace, error)
+    syscalls, ok = read_syscalls(input, cmd, edit_syscall, error)
     for filename, lineno, s in syscalls:
         try:
             print()
@@ -51,10 +51,10 @@ def goasm(input, cmd, goname_replace, error):
 
     return ok
 
-def godecl(package, input, cmd, goname_replace, error):
+def godecl(package, input, cmd, edit_syscall, error):
     print(GODECL_HEADER.format(cmd=cmd, package=package))
 
-    syscalls, ok = read_syscalls(input, cmd, goname_replace, error)
+    syscalls, ok = read_syscalls(input, cmd, edit_syscall, error)
     for filename, lineno, s in syscalls:
         try:
             decl = s.to_go_declaration()
@@ -66,24 +66,25 @@ def godecl(package, input, cmd, goname_replace, error):
 
     return ok
 
-def read_syscalls(input, cmd, goname_replace, error):
+def read_syscalls(input, cmd, edit_syscall, error):
     import fileinput
     syscalls = []
     state = None
     did_error = False
     for line in input:
         line = line.strip()
-        state = process(error, goname_replace, line, state)
+        state = process(error, line, state)
         if not state:
             did_error = True
 
         state_t, state_s = state
         if state_t == process.STATE_DONE:
+            edit_syscall(state_s)
             syscalls.append((fileinput.filename(), fileinput.lineno(), state_s))
 
     return (syscalls, not did_error)
 
-def process(error, goname_replace, line, state):
+def process(error, line, state):
     import fileinput
 
     state, syscall = state if state is not None else (process.STATE_NEW, None)
@@ -95,12 +96,10 @@ def process(error, goname_replace, line, state):
 
         syscall = Syscall.from_line(line)
         if syscall:
-            syscall.goname = goname_replace(syscall.goname)
             return (process.STATE_DONE, syscall)
 
         syscall = ManualSyscall.from_line(line)
         if syscall:
-            syscall.goname = goname_replace(syscall.goname)
             return (process.STATE_MANUAL, syscall)
 
     except MksysException as exc:
@@ -342,6 +341,7 @@ if __name__ == "__main__":
     parser.add_argument('--godecl', action='store_true', help='output Go function declarations instead of Go assembly')
     parser.add_argument('--package', type=str, help='replace package in syscall declarations')
     parser.add_argument('--prefix', type=str, help='prefix function names')
+    parser.add_argument('--convert-pointers', action='store_true', help='convert pointers to unsafe.Pointer')
     args = parser.parse_args(sys.argv[1:])
 
     if args.godecl and not args.package:
@@ -351,19 +351,30 @@ if __name__ == "__main__":
     def e(file, line, msg):
         print('error: {0}:{1}: {2}'.format(file, line, msg), file=sys.stderr)
 
-    def r(goname):
-        package, func = goname.rsplit('.', 1)
+    def r(syscall):
+        # Replace goname
+        package, func = syscall.goname.rsplit('.', 1)
         if args.package:
             package = args.package
         if args.prefix:
             func = args.prefix + func[:1].upper() + func[1:]
-        return package + '.' + func
+        syscall.goname = package + '.' + func
+
+        # Replace pointers
+        if args.convert_pointers:
+            for arg in getattr(syscall, 'input', []):
+                if arg.pointer:
+                    arg.type = 'unsafe.Pointer'
+                    arg.pointer = False
+            if hasattr(syscall, 'output') and syscall.output:
+                if Argument('ret', syscall.output).pointer:
+                    syscall.output = 'unsafe.Pointer'
 
     input = fileinput.input(args.files)
 
     if args.godecl:
-        f = lambda: godecl(args.package, input, cmd=cmd, goname_replace=r, error=e)
+        f = lambda: godecl(args.package, input, cmd=cmd, edit_syscall=r, error=e)
     else:
-        f = lambda: goasm(input, cmd=cmd, goname_replace=r, error=e)
+        f = lambda: goasm(input, cmd=cmd, edit_syscall=r, error=e)
     if not f():
         sys.exit(1)
