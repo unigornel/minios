@@ -30,6 +30,8 @@ uint64_t sys_nanotime(void);
 //CALL  AX
 //MOVQ  0(SP), AX
 //MOVL  8(SP), DX
+//MOVQ  AX, sec+0(FP)
+//MOVL  DX, nsec+8(FP)
 //RET
 void sys_now(struct sys_now_t *now);
 
