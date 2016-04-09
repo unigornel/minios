@@ -22,6 +22,21 @@ GOASM_HEADER = """\
 #include "textflag.h"
 """
 
+GODECL_HEADER = """\
+// Copyright 2009 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+//
+// System calls and other sys.stuff for AMD64, Unigornel.
+//
+// THIS FILE IS GENERATED DO NOT EDIT.
+//
+// {cmd}
+//
+
+package {package}
+"""
+
 def goasm(input, cmd, goname_replace, error):
     print(GOASM_HEADER.format(cmd=cmd))
 
@@ -30,6 +45,21 @@ def goasm(input, cmd, goname_replace, error):
         try:
             print()
             print(s.to_goasm())
+        except MksysException as exc:
+            error(filename, lineno, str(exc))
+            ok = False
+
+    return ok
+
+def godecl(package, input, cmd, goname_replace, error):
+    print(GODECL_HEADER.format(cmd=cmd, package=package))
+
+    syscalls, ok = read_syscalls(input, cmd, goname_replace, error)
+    for filename, lineno, s in syscalls:
+        try:
+            decl = s.to_go_declaration()
+            if decl:
+                print(decl)
         except MksysException as exc:
             error(filename, lineno, str(exc))
             ok = False
@@ -226,6 +256,9 @@ class ManualSyscall(Syscall):
         t += "\n".join(self.body)
         return t.strip()
 
+    def to_go_declaration(self):
+        return None
+
 class Argument(object):
     SIZES = {
         'int32' : 4,
@@ -306,9 +339,14 @@ if __name__ == "__main__":
 
     parser = ArgumentParser(description='Generate Go assembly for calling system calls')
     parser.add_argument('files', metavar='file', type=str, nargs='+', help='annotated files with syscall declarations')
+    parser.add_argument('--godecl', action='store_true', help='output Go function declarations instead of Go assembly')
     parser.add_argument('--package', type=str, help='replace package in syscall declarations')
     parser.add_argument('--prefix', type=str, help='prefix function names')
     args = parser.parse_args(sys.argv[1:])
+
+    if args.godecl and not args.package:
+        print('error: --godecl: you must specify the package using --package', file=sys.stderr)
+        sys.exit(1)
 
     def e(file, line, msg):
         print('error: {0}:{1}: {2}'.format(file, line, msg), file=sys.stderr)
@@ -322,5 +360,10 @@ if __name__ == "__main__":
         return package + '.' + func
 
     input = fileinput.input(args.files)
-    if not goasm(input, cmd=cmd, goname_replace=r, error=e):
+
+    if args.godecl:
+        f = lambda: godecl(args.package, input, cmd=cmd, goname_replace=r, error=e)
+    else:
+        f = lambda: goasm(input, cmd=cmd, goname_replace=r, error=e)
+    if not f():
         sys.exit(1)
