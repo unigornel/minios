@@ -188,7 +188,7 @@ class Syscall(object):
         t += "\tCALL\t{0}\n".format(AMD64_FUNCTION_REGISTER)
         if self.output:
             arg = Argument('ret', self.output)
-            mov = 'L' if self.output == 4 else 'Q'
+            mov = 'L' if arg.size() == 4 else 'Q'
             t += "\tMOV{0}\t{1}, ret+{2}(FP)\n".format(mov, AMD64_RETURN_REGISTER, stack.popq())
         t += "\tRET"
         return t
