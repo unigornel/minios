@@ -77,6 +77,7 @@ def read_syscalls(input, cmd, edit_syscall, error):
         state = process(error, line, state)
         if not state:
             did_error = True
+            continue
 
         state_t, state_s = state
         if state_t == process.STATE_DONE:
