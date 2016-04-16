@@ -36,7 +36,7 @@ struct console_data_chunk {
     unsigned remaining;
     MINIOS_STAILQ_ENTRY(struct console_data_chunk) entries;
 };
-MINIOS_STAILQ_HEAD(, struct console_data_chunk) console_data = MINIOS_STAILQ_HEAD_INITIALIZER(console_data);
+static MINIOS_STAILQ_HEAD(, struct console_data_chunk) console_data = MINIOS_STAILQ_HEAD_INITIALIZER(console_data);
 
 void console_input(char *buf, unsigned len)
 {
