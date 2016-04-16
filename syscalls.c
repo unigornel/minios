@@ -9,6 +9,9 @@
 #include <mini-os/crash.h>
 #include <mini-os/time.h>
 #include <mini-os/sched.h>
+#include <mini-os/list.h>
+#include <mini-os/xmalloc.h>
+#include <mini-os/lib.h>
 
 int const sys_argc = 0;
 char *const sys_argv[] = {
@@ -25,6 +28,59 @@ int32_t sys_write(uint64_t fd, void *p, int32_t n)
     console_print(NULL, (char *)p, (int)n);
 
     return n;
+}
+
+struct console_data_chunk {
+    char *buffer;
+    char *offset;
+    unsigned remaining;
+    MINIOS_STAILQ_ENTRY(struct console_data_chunk) entries;
+};
+MINIOS_STAILQ_HEAD(, struct console_data_chunk) console_data = MINIOS_STAILQ_HEAD_INITIALIZER(console_data);
+
+void console_input(char *buf, unsigned len)
+{
+    struct console_data_chunk *chunk;
+
+    chunk = malloc(sizeof(*chunk));
+    chunk->buffer = malloc(len);
+    chunk->offset = chunk->buffer;
+    chunk->remaining = len;
+    memcpy(chunk->buffer, buf, len);
+
+    MINIOS_STAILQ_INSERT_TAIL(&console_data, chunk, entries);
+}
+
+int32_t sys_read(int32_t fd, void *p, int32_t n)
+{
+    int32_t read = 0;
+    char *dest = (char *)p;
+
+    ASSERT(fd == 0, "expected fd to be 0, got %d\n", fd);
+
+    while(read < n) {
+        struct console_data_chunk *chunk;
+        int32_t will_read;
+
+        chunk = MINIOS_STAILQ_FIRST(&console_data);
+        if(chunk == NULL) {
+            break;
+        }
+
+        will_read = (chunk->remaining < (unsigned)n) ? (int32_t)chunk->remaining : n;
+        memcpy(&dest[read], chunk->offset, will_read);
+        chunk->offset += will_read;
+        chunk->remaining -= (unsigned)will_read;
+        read += will_read;
+
+        if(chunk->remaining == 0) {
+            free(chunk->buffer);
+            free(chunk);
+            MINIOS_STAILQ_REMOVE_HEAD(&console_data, entries);
+        }
+    }
+
+    return read;
 }
 
 uint64_t sys_nanotime(void)
