@@ -76,11 +76,15 @@ int32_t sys_read(int32_t fd, void *p, int32_t n)
 
         LOCK_CONSOLE_DATA();
         chunk = MINIOS_STAILQ_FIRST(&console_data);
-        if(chunk == NULL) {
+        if(chunk == NULL && read == 0) {
             console_wq_has_data = 0;
             UNLOCK_CONSOLE_DATA();
             wait_event(console_wq, console_wq_has_data);
             continue;
+
+        } else if(chunk == NULL) {
+            UNLOCK_CONSOLE_DATA();
+            break;
         }
 
         will_read = (chunk->remaining < (unsigned)n) ? (int32_t)chunk->remaining : n;
