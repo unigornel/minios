@@ -48,6 +48,7 @@ static DECLARE_MUTEX(console_data_chunk_mutex);
 void console_input(char *buf, unsigned len)
 {
     struct console_data_chunk *chunk;
+    unsigned i;
 
     LOCK_CONSOLE_DATA();
     chunk = malloc(sizeof(*chunk));
@@ -55,6 +56,12 @@ void console_input(char *buf, unsigned len)
     chunk->offset = chunk->buffer;
     chunk->remaining = len;
     memcpy(chunk->buffer, buf, len);
+
+    for(i = 0; i < len; i++) {
+        if(chunk->buffer[i] == '\r') {
+            chunk->buffer[i] = '\n';
+        }
+    }
 
     MINIOS_STAILQ_INSERT_TAIL(&console_data, chunk, entries);
     UNLOCK_CONSOLE_DATA();
