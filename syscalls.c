@@ -63,6 +63,8 @@ void console_input(char *buf, unsigned len)
         }
     }
 
+    console_print(NULL, chunk->buffer, len);
+
     MINIOS_STAILQ_INSERT_TAIL(&console_data, chunk, entries);
     UNLOCK_CONSOLE_DATA();
 
