@@ -98,6 +98,7 @@ src-y += mmap.c
 src-y += go_main.c
 src-y += mm.c
 src-y += netfront.c
+src-y += network.c
 src-$(CONFIG_PCIFRONT) += pcifront.c
 src-y += go_pthread.c
 src-y += runtime.c
