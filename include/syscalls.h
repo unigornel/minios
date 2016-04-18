@@ -21,6 +21,9 @@ void _unimplemented_syscall(void);
 //sys sys_write runtime.write(fd uint64, p unsafe.Pointer, n int32) int32
 int32_t sys_write(uint64_t fd, void *p, int32_t n);
 
+//sys sys_read runtime.read(fd int32, p unsafe.Pointer, n int32) int32
+int32_t sys_read(int32_t fd, void *p, int32_t n);
+
 //sys sys_nanotime runtime.nanotime() uint64
 uint64_t sys_nanotime(void);
 
@@ -51,7 +54,6 @@ void sys_nanosleep(uint64_t nsec);
 //sys _unimplemented_syscall runtime.exit1(code int32)
 //sys _unimplemented_syscall runtime.open(name *byte, mode int32, perm int32) int32
 //sys _unimplemented_syscall runtime.closefd(fd int32) int32
-//sys _unimplemented_syscall runtime.read(fd int32, p unsafe.Pointer, n int32) int32
 //sys _unimplemented_syscall runtime.raise(sig int32)
 //sys _unimplemented_syscall runtime.raiseproc(sig int32)
 //sys _unimplemented_syscall runtime.setitimer(mode int32, new *itimerval, old *itimerval)

@@ -9,6 +9,11 @@
 #include <mini-os/crash.h>
 #include <mini-os/time.h>
 #include <mini-os/sched.h>
+#include <mini-os/list.h>
+#include <mini-os/xmalloc.h>
+#include <mini-os/lib.h>
+#include <mini-os/wait.h>
+#include <mini-os/semaphore.h>
 
 int const sys_argc = 0;
 char *const sys_argv[] = {
@@ -25,6 +30,87 @@ int32_t sys_write(uint64_t fd, void *p, int32_t n)
     console_print(NULL, (char *)p, (int)n);
 
     return n;
+}
+
+struct console_data_chunk {
+    char *buffer;
+    char *offset;
+    unsigned remaining;
+    MINIOS_STAILQ_ENTRY(struct console_data_chunk) entries;
+};
+static MINIOS_STAILQ_HEAD(, struct console_data_chunk) console_data = MINIOS_STAILQ_HEAD_INITIALIZER(console_data);
+static DECLARE_WAIT_QUEUE_HEAD(console_wq);
+static int console_wq_has_data;
+static DECLARE_MUTEX(console_data_chunk_mutex);
+#define LOCK_CONSOLE_DATA() down(&console_data_chunk_mutex);
+#define UNLOCK_CONSOLE_DATA() up(&console_data_chunk_mutex);
+
+void console_input(char *buf, unsigned len)
+{
+    struct console_data_chunk *chunk;
+    unsigned i;
+
+    LOCK_CONSOLE_DATA();
+    chunk = malloc(sizeof(*chunk));
+    chunk->buffer = malloc(len);
+    chunk->offset = chunk->buffer;
+    chunk->remaining = len;
+    memcpy(chunk->buffer, buf, len);
+
+    for(i = 0; i < len; i++) {
+        if(chunk->buffer[i] == '\r') {
+            chunk->buffer[i] = '\n';
+        }
+    }
+
+    console_print(NULL, chunk->buffer, len);
+
+    MINIOS_STAILQ_INSERT_TAIL(&console_data, chunk, entries);
+    UNLOCK_CONSOLE_DATA();
+
+    console_wq_has_data = 1;
+    wake_up(&console_wq);
+}
+
+int32_t sys_read(int32_t fd, void *p, int32_t n)
+{
+    int32_t read = 0;
+    char *dest = (char *)p;
+
+    ASSERT(fd == 0, "expected fd to be 0, got %d\n", fd);
+
+    while(read < n) {
+        struct console_data_chunk *chunk;
+        int32_t will_read;
+
+        LOCK_CONSOLE_DATA();
+        chunk = MINIOS_STAILQ_FIRST(&console_data);
+        if(chunk == NULL && read == 0) {
+            console_wq_has_data = 0;
+            UNLOCK_CONSOLE_DATA();
+            wait_event(console_wq, console_wq_has_data);
+            continue;
+
+        } else if(chunk == NULL) {
+            UNLOCK_CONSOLE_DATA();
+            break;
+        }
+
+        will_read = (chunk->remaining < (unsigned)n) ? (int32_t)chunk->remaining : n;
+        memcpy(&dest[read], chunk->offset, will_read);
+        chunk->offset += will_read;
+        chunk->remaining -= (unsigned)will_read;
+        read += will_read;
+
+        if(chunk->remaining == 0) {
+            free(chunk->buffer);
+            free(chunk);
+            MINIOS_STAILQ_REMOVE_HEAD(&console_data, entries);
+        }
+        UNLOCK_CONSOLE_DATA();
+    }
+
+    return read;
 }
 
 uint64_t sys_nanotime(void)
