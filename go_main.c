@@ -20,8 +20,27 @@ static void *initialize_go_thread(void *ctx) {
     return NULL;
 }
 
+#include <mini-os/lib.h>
+#include <mini-os/sched.h>
+static void test_network(void) {
+    char payload[] = "Hello, World!";
+    struct eth_packet p;
+
+    memset(&p.destination, ~0, sizeof(p.destination));
+    p.ether_type = (uint16_t)strlen(payload);
+    p.payload = (unsigned char *)payload;
+    p.payload_length = (unsigned int)p.ether_type;
+
+    while(1) {
+        printk("sending packet\n");
+        send_packet(&p);
+        msleep(100);
+    }
+}
+
 static void *initialize_network_thread(void *ctx) {
     init_network();
+    test_network();
     network_initialized = 1;
     wake_up(&network_wq);
     return NULL;
