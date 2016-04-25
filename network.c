@@ -50,3 +50,8 @@ void send_packet(struct eth_packet *p)
     raw_length = sizeof(raw) - sizeof(raw.payload) + p->payload_length;
     netfront_xmit(network_device, (unsigned char *)&raw, raw_length);
 }
+
+void get_mac_address(char mac[6])
+{
+    memcpy(mac, network_mac, 6);
+}
