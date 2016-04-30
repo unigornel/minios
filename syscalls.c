@@ -18,6 +18,7 @@
 int const sys_argc = 0;
 char *const sys_argv[] = {
     NULL, // end of argv
+    "TZ=UTC",
     NULL, // end of envs
 };
 
