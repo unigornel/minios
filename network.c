@@ -47,7 +47,11 @@ void send_packet(struct eth_packet *p)
     memcpy(raw.smac, network_mac, sizeof(raw.smac));
     memcpy(raw.dmac, p->destination, sizeof(raw.dmac));
     memcpy(raw.payload, p->payload, p->payload_length);
-    raw.ether_type = p->ether_type;
+#ifdef __x86_64__
+    raw.ether_type = ((p->ether_type >> 8) & 0x00FF) | ((p->ether_type << 8) & 0xFF00);
+#else
+#error "not implemented"
+#endif
 
     raw_length = sizeof(raw) - sizeof(raw.payload) + p->payload_length;
     netfront_xmit(network_device, (unsigned char *)&raw, raw_length);
@@ -73,7 +77,7 @@ void netif_rx(unsigned char *data, int len)
     packet = malloc(sizeof(*packet));
     packet->packet.payload_length = len - 14;
     packet->packet.payload = malloc(packet->packet.payload_length);
-    packet->packet.ether_type = data[12] | (data[13] << 8);
+    packet->packet.ether_type = (data[12] << 8) | data[13];
 
     memcpy(packet->packet.destination, &data[0], 6);
     memcpy(packet->packet.source, &data[6], 6);
