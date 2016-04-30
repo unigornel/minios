@@ -14,8 +14,8 @@ enum {
 };
 
 struct eth_packet {
-    char destination[6];
-    char source[6];
+    unsigned char destination[6];
+    unsigned char source[6];
     uint16_t ether_type;
     unsigned char *payload;
     unsigned int payload_length;
@@ -24,6 +24,6 @@ struct eth_packet {
 void init_network(void);
 void send_packet(struct eth_packet *p);
 int receive_packet(struct eth_packet *p);
-void get_mac_address(char mac[6]);
+void get_mac_address(unsigned char mac[6]);
 
 #endif /* _NETWORK_H_ */

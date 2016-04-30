@@ -36,8 +36,8 @@ void send_packet(struct eth_packet *p)
 {
     int raw_length;
     struct {
-        char dmac[6];
-        char smac[6];
+        unsigned char dmac[6];
+        unsigned char smac[6];
         uint16_t ether_type;
         unsigned char payload[MAX_ETH_PAYLOAD_SIZE];
     } __attribute__((packed)) raw;
@@ -120,7 +120,7 @@ int receive_packet(struct eth_packet *p)
     return 0;
 }
 
-void get_mac_address(char mac[6])
+void get_mac_address(unsigned char mac[6])
 {
     memcpy(mac, network_mac, 6);
 }
