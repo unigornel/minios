@@ -10,10 +10,10 @@
 
 void init_futex(void);
 
-//sys sys_futex_wait runtime.futex_wait(addr unsafe.Pointer, val uint32, ns int64) int32
+//sysnb sys_futex_wait runtime.futex_wait(addr unsafe.Pointer, val uint32, ns int64) int32
 int32_t sys_futex_wait(uint32_t *addr, uint32_t val, int64_t ns);
 
-//sys sys_futex_wake runtime.futex_wake(addr unsafe.Pointer, cnt uint32) int32
+//sysnb sys_futex_wake runtime.futex_wake(addr unsafe.Pointer, cnt uint32) int32
 int32_t sys_futex_wake(uint32_t *addr, uint32_t count);
 
 #endif /* _FUTEX_H_ */

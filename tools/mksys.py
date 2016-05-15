@@ -128,11 +128,12 @@ class Syscall(object):
             msg = 'Too many input arguments'
             super(Syscall.TooManyInputArguments, self).__init__(msg)
 
-    def __init__(self, cname, goname, input, output):
+    def __init__(self, cname, goname, input, output, is_blocking):
         self.cname = cname
         self.goname = goname
         self.input = input
         self.output = output
+        self.is_blocking = is_blocking
 
     def __repr__(self):
         t = (self.cname, self.goname, self.input, self.output)
@@ -150,11 +151,12 @@ class Syscall(object):
     @classmethod
     def from_line(cls, line):
         import re
-        m = re.match('^//sys\s+(.*)$', line)
+        m = re.match('^//sys(nb)?\s+(.*)$', line)
         if not m:
             return None
 
-        m = m.group(1).strip()
+        is_blocking = m.group(1) is None
+        m = m.group(2).strip()
         m = re.match('(\w+)\s+([\w\.]+)\((.*)\)\s*([\w\.]*)$', m)
         if not m:
             raise cls.InvalidSyscallLineException()
@@ -167,7 +169,7 @@ class Syscall(object):
             input = list(map(Argument.from_input_string, m.group(3).split(',')))
         output = m.group(4) if m.group(4) != "" else None
 
-        return cls(cname, goname, input, output)
+        return cls(cname, goname, input, output, is_blocking)
 
     def to_goasm(self):
         def mov_arg(stack, arg, reg):
@@ -182,6 +184,8 @@ class Syscall(object):
         stack = GoStack()
         t = "// " + self.to_go_declaration() + "\n"
         t += "TEXT {0}(SB),NOSPLIT,$0\n".format(self.goasm_name)
+        if self.is_blocking:
+            t += "\tCALL\truntime\u00B7entersyscall(SB)\n"
         for i, arg in enumerate(self.input):
             t += "\t" + mov_arg(stack, arg, AMD64_PARAM_REGISTERS[i]) + "\n"
         t += "\tLEAQ\t{0}(SB), {1}\n".format(self.cname, AMD64_FUNCTION_REGISTER)
@@ -190,6 +194,8 @@ class Syscall(object):
             arg = Argument('ret', self.output)
             mov = 'L' if arg.size() == 4 else 'Q'
             t += "\tMOV{0}\t{1}, ret+{2}(FP)\n".format(mov, AMD64_RETURN_REGISTER, stack.popq())
+        if self.is_blocking:
+            t += "\tCALL\truntime\u00B7exitsyscall(SB)\n"
         t += "\tRET"
         return t
 
