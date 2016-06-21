@@ -32,29 +32,9 @@ void init_network(void)
     memcpy(network_mac, mac, sizeof(network_mac));
 }
 
-void send_packet(struct eth_packet *p)
+void send_packet(void *data, int64_t len)
 {
-    int raw_length;
-    struct {
-        unsigned char dmac[6];
-        unsigned char smac[6];
-        uint16_t ether_type;
-        unsigned char payload[MAX_ETH_PAYLOAD_SIZE];
-    } __attribute__((packed)) raw;
-
-    ASSERT(p->payload_length <= MAX_ETH_PAYLOAD_SIZE, "ethernet payload too large");
-
-    memcpy(raw.smac, network_mac, sizeof(raw.smac));
-    memcpy(raw.dmac, p->destination, sizeof(raw.dmac));
-    memcpy(raw.payload, p->payload, p->payload_length);
-#ifdef __x86_64__
-    raw.ether_type = ((p->ether_type >> 8) & 0x00FF) | ((p->ether_type << 8) & 0xFF00);
-#else
-#error "not implemented"
-#endif
-
-    raw_length = sizeof(raw) - sizeof(raw.payload) + p->payload_length;
-    netfront_xmit(network_device, (unsigned char *)&raw, raw_length);
+    netfront_xmit(network_device, (unsigned char *)&data, (int)len);
 }
 
 struct incoming_packet {
