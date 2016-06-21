@@ -23,7 +23,7 @@ struct eth_packet {
 
 void init_network(void);
 void send_packet(struct eth_packet *p);
-int receive_packet(struct eth_packet *p);
+int64_t receive_packet(void *data, int64_t len);
 void get_mac_address(unsigned char mac[6]);
 
 #endif /* _NETWORK_H_ */
