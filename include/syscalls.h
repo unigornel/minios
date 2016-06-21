@@ -18,7 +18,7 @@ struct sys_now_t {
 
 void _unimplemented_syscall(void);
 
-//sys sys_write runtime.write(fd uint64, p unsafe.Pointer, n int32) int32
+//sysnb sys_write runtime.write(fd uint64, p unsafe.Pointer, n int32) int32
 int32_t sys_write(uint64_t fd, void *p, int32_t n);
 
 //sys sys_read runtime.read(fd int32, p unsafe.Pointer, n int32) int32
