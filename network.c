@@ -32,33 +32,14 @@ void init_network(void)
     memcpy(network_mac, mac, sizeof(network_mac));
 }
 
-void send_packet(struct eth_packet *p)
+void send_packet(void *data, int64_t len)
 {
-    int raw_length;
-    struct {
-        unsigned char dmac[6];
-        unsigned char smac[6];
-        uint16_t ether_type;
-        unsigned char payload[MAX_ETH_PAYLOAD_SIZE];
-    } __attribute__((packed)) raw;
-
-    ASSERT(p->payload_length <= MAX_ETH_PAYLOAD_SIZE, "ethernet payload too large");
-
-    memcpy(raw.smac, network_mac, sizeof(raw.smac));
-    memcpy(raw.dmac, p->destination, sizeof(raw.dmac));
-    memcpy(raw.payload, p->payload, p->payload_length);
-#ifdef __x86_64__
-    raw.ether_type = ((p->ether_type >> 8) & 0x00FF) | ((p->ether_type << 8) & 0xFF00);
-#else
-#error "not implemented"
-#endif
-
-    raw_length = sizeof(raw) - sizeof(raw.payload) + p->payload_length;
-    netfront_xmit(network_device, (unsigned char *)&raw, raw_length);
+    netfront_xmit(network_device, (unsigned char *)data, (int)len);
 }
 
 struct incoming_packet {
-    struct eth_packet packet;
+    unsigned char *data;
+    int64_t length;
     MINIOS_STAILQ_ENTRY(struct incoming_packet) entries;
 };
 static MINIOS_STAILQ_HEAD(, struct incoming_packet) incoming_packets = MINIOS_STAILQ_HEAD_INITIALIZER(incoming_packets);
@@ -75,13 +56,9 @@ void netif_rx(unsigned char *data, int len)
     ASSERT(len >= 6 + 6 + 2, "ethernet packet too small");
 
     packet = malloc(sizeof(*packet));
-    packet->packet.payload_length = len - 14;
-    packet->packet.payload = malloc(packet->packet.payload_length);
-    packet->packet.ether_type = (data[12] << 8) | data[13];
-
-    memcpy(packet->packet.destination, &data[0], 6);
-    memcpy(packet->packet.source, &data[6], 6);
-    memcpy(packet->packet.payload, &data[14], packet->packet.payload_length);
+    packet->data = malloc(len);
+    packet->length = (int64_t)len;
+    memcpy(packet->data, data, len);
 
     LOCK_INCOMING_PACKETS();
     MINIOS_STAILQ_INSERT_TAIL(&incoming_packets, packet, entries);
@@ -91,8 +68,9 @@ void netif_rx(unsigned char *data, int len)
     wake_up(&incoming_wq);
 }
 
-int receive_packet(struct eth_packet *p)
+int64_t receive_packet(void *vdata, int64_t len)
 {
+    int64_t length;
     struct incoming_packet *packet;
 
     do {
@@ -108,20 +86,17 @@ int receive_packet(struct eth_packet *p)
         UNLOCK_INCOMING_PACKETS();
     } while(packet == NULL);
 
-    if(p->payload_length < packet->packet.payload_length) {
+    if(len < packet->length) {
         return -1;
     }
 
-    memcpy(p->payload, packet->packet.payload, packet->packet.payload_length);
-    memcpy(p->destination, packet->packet.destination, 6);
-    memcpy(p->source, packet->packet.source, 6);
-    p->ether_type = packet->packet.ether_type;
-    p->payload_length = packet->packet.payload_length;
+    length = packet->length;
+    memcpy(vdata, packet->data, length);
 
-    free(packet->packet.payload);
+    free(packet->data);
     free(packet);
 
-    return 0;
+    return length;
 }
 
 void get_mac_address(unsigned char mac[6])
