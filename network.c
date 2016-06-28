@@ -34,7 +34,7 @@ void init_network(void)
 
 void send_packet(void *data, int64_t len)
 {
-    netfront_xmit(network_device, (unsigned char *)&data, (int)len);
+    netfront_xmit(network_device, (unsigned char *)data, (int)len);
 }
 
 struct incoming_packet {
