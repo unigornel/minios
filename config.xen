@@ -12,3 +12,5 @@ kernel = "mini-os"
 memory = 256
 name = "minios"
 on_crash = "preserve"
+
+vif = ['bridge=xenbr0']
